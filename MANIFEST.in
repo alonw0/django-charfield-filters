@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+recursive-include charfield_filters/templates *
+recursive-include charfield_filters/static *
+recursive-include docs *

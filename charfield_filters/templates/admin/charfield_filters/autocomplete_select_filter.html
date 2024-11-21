@@ -1,0 +1,283 @@
+{% load i18n %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<ul class="admin-filter-{{ title|cut:' ' }}">
+    <div class="charfield-filter-container{% if LANGUAGE_BIDI %} is-rtl{% endif %}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr' }}">
+        <div class="charfield-filter-input-wrapper">
+            <input type="text" 
+                   class="charfield-filter-autocomplete" 
+                   name="{{ spec.parameter_name }}" 
+                   value="{{ spec.value|default:'' }}"
+                   placeholder="{% trans 'Search' %}"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-expanded="false"
+                   aria-controls="charfield-filter-options"
+                   aria-haspopup="listbox"
+                   {% if LANGUAGE_BIDI %}style="padding-left: 30px; padding-right: 8px;"{% else %}style="padding-right: 30px; padding-left: 8px;"{% endif %}>
+            <button type="button" 
+                    class="charfield-filter-clear" 
+                    style="display: {% if spec.value %}inline{% else %}none{% endif %};"
+                    title="{% trans 'Clear' %}"
+                    aria-label="{% trans 'Clear filter' %}">×</button>
+        </div>
+        <div class="charfield-filter-dropdown" 
+             style="display: none;"
+             role="listbox"
+             id="charfield-filter-options"
+             tabindex="-1">
+            {% for choice in choices %}
+                <div class="charfield-filter-option" 
+                     data-value="{{ choice.query_string|iriencode }}"
+                     {% if choice.selected %}data-selected="true"{% endif %}
+                     role="option"
+                     tabindex="-1"
+                     aria-selected="{% if choice.selected %}true{% else %}false{% endif %}">
+                    {{ choice.display }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</ul>
+
+<style>
+    .charfield-filter-container {
+        position: relative;
+        width: 100%;
+    }
+    .charfield-filter-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .charfield-filter-autocomplete {
+        flex: 1;
+        width: 100%;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        text-align: inherit;
+    }
+    .charfield-filter-autocomplete:focus {
+        border-color: #666;
+        outline: none;
+    }
+    .charfield-filter-clear {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0 5px;
+        line-height: 1;
+        z-index: 2;
+    }
+    .charfield-filter-container:not(.is-rtl) .charfield-filter-clear {
+        right: 8px;
+    }
+    .charfield-filter-container.is-rtl .charfield-filter-clear {
+        left: 8px;
+    }
+    .charfield-filter-clear:hover {
+        color: #666;
+    }
+    .charfield-filter-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    .charfield-filter-option {
+        padding: 8px;
+        cursor: pointer;
+        text-align: inherit;
+    }
+    .charfield-filter-option:hover,
+    .charfield-filter-option.keyboard-selected {
+        background: #f5f5f5;
+    }
+    .charfield-filter-option[data-selected="true"] {
+        background: #e8e8e8;
+    }
+
+    /* RTL specific styles */
+    .charfield-filter-container.is-rtl .charfield-filter-autocomplete {
+        text-align: right;
+    }
+    .charfield-filter-container.is-rtl .charfield-filter-option {
+        text-align: right;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const containers = document.querySelectorAll('.charfield-filter-container');
+        
+        containers.forEach(container => {
+            const input = container.querySelector('.charfield-filter-autocomplete');
+            const dropdown = container.querySelector('.charfield-filter-dropdown');
+            const clearButton = container.querySelector('.charfield-filter-clear');
+            const options = container.querySelectorAll('.charfield-filter-option');
+            let selectedIndex = -1;
+            let isOpen = false;
+
+            // Show clear button if there's an initial value
+            clearButton.style.display = input.value ? 'inline' : 'none';
+
+            function updateClearButton() {
+                const hasValue = input.value.trim() !== '' || input.getAttribute('data-selected') === 'true';
+                clearButton.style.display = hasValue ? 'inline' : 'none';
+            }
+
+            function selectOption(option) {
+                if (!option) return;
+                
+                const value = option.textContent.trim();
+                const queryString = option.dataset.value;
+                
+                input.value = value;
+                input.setAttribute('data-selected', 'true');
+                
+                // Update selected state for all options
+                options.forEach(opt => {
+                    opt.setAttribute('aria-selected', opt === option ? 'true' : 'false');
+                    opt.dataset.selected = opt === option ? 'true' : undefined;
+                });
+                
+                updateClearButton();
+                closeDropdown();
+                
+                // Navigate to the filtered URL
+                if (queryString) {
+                    window.location.href = queryString;
+                }
+            }
+
+            function filterOptions(query) {
+                const searchQuery = query.toLowerCase();
+                let visibleCount = 0;
+                
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    const isVisible = text.includes(searchQuery);
+                    option.style.display = isVisible ? '' : 'none';
+                    if (isVisible) visibleCount++;
+                });
+                
+                return visibleCount;
+            }
+
+            function openDropdown() {
+                if (!isOpen) {
+                    dropdown.style.display = 'block';
+                    input.setAttribute('aria-expanded', 'true');
+                    isOpen = true;
+                }
+            }
+
+            function closeDropdown() {
+                if (isOpen) {
+                    dropdown.style.display = 'none';
+                    input.setAttribute('aria-expanded', 'false');
+                    isOpen = false;
+                    selectedIndex = -1;
+                    options.forEach(option => {
+                        option.classList.remove('keyboard-selected');
+                    });
+                }
+            }
+
+            function clearFilter() {
+                input.value = '';
+                input.removeAttribute('data-selected');
+                updateClearButton();
+                options.forEach(option => {
+                    option.style.display = '';
+                    option.setAttribute('aria-selected', 'false');
+                    delete option.dataset.selected;
+                });
+                window.location.href = options[0].dataset.value; // Navigate to "All" option URL
+            }
+
+            // Event Listeners
+            input.addEventListener('focus', () => {
+                openDropdown();
+                filterOptions(input.value);
+            });
+
+            input.addEventListener('input', () => {
+                const visibleCount = filterOptions(input.value);
+                if (visibleCount > 0) {
+                    openDropdown();
+                } else {
+                    closeDropdown();
+                }
+                input.removeAttribute('data-selected');
+                updateClearButton();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const visibleOptions = Array.from(options).filter(opt => opt.style.display !== 'none');
+                
+                switch(e.key) {
+                    case 'ArrowDown':
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        if (!isOpen) {
+                            openDropdown();
+                            selectedIndex = e.key === 'ArrowDown' ? 0 : visibleOptions.length - 1;
+                        } else {
+                            selectedIndex = e.key === 'ArrowDown' 
+                                ? (selectedIndex + 1) % visibleOptions.length
+                                : (selectedIndex - 1 + visibleOptions.length) % visibleOptions.length;
+                        }
+                        
+                        options.forEach(opt => opt.classList.remove('keyboard-selected'));
+                        visibleOptions[selectedIndex]?.classList.add('keyboard-selected');
+                        break;
+
+                    case 'Enter':
+                        e.preventDefault();
+                        if (isOpen && selectedIndex >= 0) {
+                            selectOption(visibleOptions[selectedIndex]);
+                        }
+                        break;
+
+                    case 'Escape':
+                        e.preventDefault();
+                        closeDropdown();
+                        break;
+                }
+            });
+
+            clearButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearFilter();
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    selectOption(option);
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!container.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+        });
+    });
+</script>

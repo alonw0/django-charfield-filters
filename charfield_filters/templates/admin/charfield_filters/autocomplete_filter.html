@@ -1,0 +1,92 @@
+{% load i18n %}
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<form method="GET" class="charfield-filter-form">
+    {% for param,value in spec.get_query_params.items %}
+        {% if param != spec.parameter_name %}
+            <input type="hidden" name="{{ param }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
+    <input type="text" 
+           class="charfield-filter-autocomplete" 
+           name="{{ spec.parameter_name }}" 
+           value="{{ spec.value|default:'' }}"
+           placeholder="{% trans 'Search...' %}"
+           autocomplete="off">
+</form>
+
+<style>
+    .charfield-filter-autocomplete {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .charfield-filter-autocomplete:focus {
+        border-color: #666;
+        outline: none;
+    }
+    .charfield-filter-form {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var input = document.querySelector('.charfield-filter-autocomplete');
+        var form = input.closest('form');
+        
+        function updateURL(value) {
+            // Get current URL and parameters
+            var url = new URL(window.location.href);
+            var params = new URLSearchParams(url.search);
+            
+            // Update or remove the filter parameter
+            if (value) {
+                params.set(input.name, value);
+            } else {
+                params.delete(input.name);
+            }
+            
+            // Preserve other parameters from the form
+            form.querySelectorAll('input[type="hidden"]').forEach(function(hidden) {
+                params.set(hidden.name, hidden.value);
+            });
+            
+            // Update URL without reloading
+            url.search = params.toString();
+            window.history.pushState({}, '', url);
+            
+            // Fetch and update content
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    // Find the results container
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/html');
+                    var newResults = doc.querySelector('#changelist-form');
+                    var currentResults = document.querySelector('#changelist-form');
+                    
+                    if (newResults && currentResults) {
+                        currentResults.innerHTML = newResults.innerHTML;
+                    }
+                });
+        }
+        
+        var debounceTimer;
+        input.addEventListener('input', function(e) {
+            clearTimeout(debounceTimer);
+            var value = this.value;
+            debounceTimer = setTimeout(function() {
+                updateURL(value);
+            }, 300);
+        });
+
+        // Prevent form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    });
+</script>
