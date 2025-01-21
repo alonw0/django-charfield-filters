@@ -31,6 +31,17 @@
         margin: 0;
         padding: 0;
     }
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+        .charfield-filter-autocomplete {
+            background-color: #444; /* Dark input background */
+            color: #fff; /* Light input text */
+            border: 1px solid #666; /* Lighter border */
+        }
+        .charfield-filter-autocomplete:focus {
+            border-color: #888; /* Lighter border on focus */
+        }
+    }
 </style>
 
 <script>

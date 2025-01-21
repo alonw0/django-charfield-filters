@@ -118,6 +118,39 @@
     .charfield-filter-container.is-rtl .charfield-filter-option {
         text-align: right;
     }
+
+   
+    /* Dark mode styles */
+    @media (prefers-color-scheme: dark) {
+        .charfield-filter-container {
+            background-color: #333; /* Dark background */
+            color: #fff; /* Light text */
+        }
+        .charfield-filter-autocomplete {
+            background-color: #444; /* Dark input background */
+            color: #fff; /* Light input text */
+            border: 1px solid #666; /* Lighter border */
+        }
+        .charfield-filter-dropdown {
+            background: #444; /* Dark dropdown background */
+            border: 1px solid #666; /* Lighter border */
+        }
+        .charfield-filter-option {
+            background: #444; /* Dark option background */
+            color: #fff; /* Light option text */
+        }
+        .charfield-filter-option[data-selected="true"] {
+        background: #d55d5d;
+        }
+        .charfield-filter-option:hover,
+        .charfield-filter-option.keyboard-selected {
+            background: #555; /* Slightly lighter on hover */
+        }
+        .charfield-filter-clear {
+            color: #fff; /* Light clear button text */
+        }
+    }
+
 </style>
 
 <script>

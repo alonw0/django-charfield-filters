@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="django-charfield-filters",
-    version="0.1.0",
+    version="0.1.2",
     author="Alon Wolenitz",
     author_email="alonsukasa@gmail.com",
     description="Django admin filters for CharFields with select and autocomplete functionality",
@@ -20,6 +20,7 @@ setup(
         "Environment :: Web Environment",
         "Framework :: Django",
         "Framework :: Django :: 5.1",
+        "Framework :: Django :: 5.2",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
@@ -28,11 +29,12 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
-    package_dir={"": "."},
-    packages=find_packages(where="."),
+    packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
         "Django>=4.2.0",

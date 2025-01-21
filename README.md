@@ -1,5 +1,12 @@
 # Django CharField Filters
 
+[![PyPI](https://img.shields.io/pypi/v/django-charfield-filters)](https://pypi.org/project/django-charfield-filters)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-charfield-filters)
+![Django Version](https://img.shields.io/badge/django-4.2%20%7C%205.0%20%7C%205.1-%2344B78B?labelColor=%23092E20)
+<!-- https://shields.io/badges -->
+<!-- django-4.2 | 5.0 | 5.1-#44B78B -->
+<!-- labelColor=%23092E20 -->
+
 A reusable Django app that provides advanced admin filters for CharField fields, including both dropdown select and autocomplete functionality.
 
 ## Features
