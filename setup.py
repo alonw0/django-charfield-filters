@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="django-charfield-filters",
-    version="0.1.2",
+    version="0.1.3",
     author="Alon Wolenitz",
     author_email="alonsukasa@gmail.com",
     description="Django admin filters for CharFields with select and autocomplete functionality",
